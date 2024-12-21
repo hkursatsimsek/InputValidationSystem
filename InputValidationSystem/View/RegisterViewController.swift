@@ -15,9 +15,6 @@ class RegisterViewController: UIViewController, UIImagePickerControllerDelegate,
     private let phoneTextField = RegisterViewController.createTextField(placeholder: "Telefon Numarası", isSecure: false)
     private let passwordTextField = RegisterViewController.createTextField(placeholder: "Şifre", isSecure: true)
     private let confirmPasswordTextField = RegisterViewController.createTextField(placeholder: "Şifre Tekrar", isSecure: true)
-    
-    private lazy var passwordEyeButton = createEyeButton(action: #selector(togglePasswordVisibility))
-    private lazy var confirmPasswordEyeButton = createEyeButton(action: #selector(toggleConfirmPasswordVisibility))
     private let scrollView = UIScrollView()
     private let contentView = UIView()
     private var viewModel = RegisterViewModel()
@@ -150,7 +147,7 @@ class RegisterViewController: UIViewController, UIImagePickerControllerDelegate,
     @objc private func selectProfilePhoto() {
         let imagePicker = UIImagePickerController()
         imagePicker.delegate = self
-        imagePicker.sourceType = .photoLibrary // Galeri
+        imagePicker.sourceType = .photoLibrary
         present(imagePicker, animated: true)
     }
     
@@ -172,50 +169,19 @@ class RegisterViewController: UIViewController, UIImagePickerControllerDelegate,
         viewModel.username = usernameTextField.text ?? ""
         viewModel.phoneNumber = phoneTextField.text ?? ""
         
-        if let errorMessage = viewModel.validateFields() {
-            showError(errorMessage)
+        debugPrint("Email: \(viewModel.email), Password: \(viewModel.password), Confirm: \(viewModel.confirmPassword), Username: \(viewModel.username), Phone: \(viewModel.phoneNumber)")
+        
+        if let validationError = viewModel.validateFields() {
+            showError(validationError)
         } else {
             messageLabel.text = "Kayıt Başarılı!"
             messageLabel.textColor = .systemGreen
         }
     }
     
-    private func showError(_ message: String) {
-        messageLabel.text = message
+    private func showError(_ error: ValidationError) {
+        messageLabel.text = "\(error.title): \(error.message ?? "")"
         messageLabel.textColor = .systemRed
-    }
-    
-    private func createEyeButton(action: Selector) -> UIButton {
-        var config = UIButton.Configuration.plain()
-        config.image = UIImage(systemName: "eye")
-        config.baseForegroundColor = .systemGray
-        config.buttonSize = .medium
-        
-        let button = UIButton(configuration: config)
-        button.addTarget(self, action: action, for: .touchUpInside)
-        return button
-    }
-    
-    private func addEyeButton(to textField: UITextField, button: UIButton) {
-        textField.rightView = button
-        textField.rightViewMode = .always
-    }
-    
-    @objc private func togglePasswordVisibility() {
-        toggleTextFieldVisibility(textField: passwordTextField, button: passwordEyeButton)
-    }
-    
-    @objc private func toggleConfirmPasswordVisibility() {
-        toggleTextFieldVisibility(textField: confirmPasswordTextField, button: confirmPasswordEyeButton)
-    }
-    
-    private func toggleTextFieldVisibility(textField: UITextField, button: UIButton) {
-        textField.isSecureTextEntry.toggle()
-        
-        let newImageName = textField.isSecureTextEntry ? "eye" : "eye.fill"
-        UIView.transition(with: button, duration: 0.3, options: [.transitionFlipFromLeft, .curveEaseInOut], animations: {
-            button.configuration?.image = UIImage(systemName: newImageName)
-        }, completion: nil)
     }
     
     static func createTextField(placeholder: String, isSecure: Bool) -> UITextField {
